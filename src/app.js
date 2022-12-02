@@ -14,22 +14,44 @@ fs.watchFile(saveFilePath, { interval: 2000 }, () => {
 });
 
 function createBackupFile() {
+    
     const backupsFolderPath = path.join(BARONY_BACKUPS_DIRECTORY, 'Barony Backups');
-
+    
     if (!fs.existsSync(backupsFolderPath)) {
         fs.mkdirSync(backupsFolderPath);
     }
-
-    const timestamp = Date.now().toString();
-    const backupFolderPath = path.join(backupsFolderPath, timestamp);
     
-    fs.mkdirSync(path.join(backupFolderPath))
+    if(fs.existsSync(saveFilePath)){
+        const timestamp = Date.now().toString();
+        const backupFolderPath = path.join(backupsFolderPath, timestamp);
+        
+        fs.mkdirSync(path.join(backupFolderPath))
+        
+        const backupFilePath = path.join(backupFolderPath, BARONY_SAVEGAME_FILE)
+        
+        fs.copyFileSync(saveFilePath, backupFilePath);
+        
+        const currentDate = new Date();
+    
+        console.log(`[${currentDate.getHours()}:${currentDate.getMinutes()}:${currentDate.getSeconds()}] Backup feito com sucesso`);
+    }
+    else{
+        const folders = fs.readdirSync(backupsFolderPath);
 
-    const backupFilePath = path.join(backupFolderPath, BARONY_SAVEGAME_FILE)
+        const foldersLength = folders.length
 
-    fs.copyFileSync(saveFilePath, backupFilePath);
-
-    const currentDate = new Date();
-
-    console.log(`[${currentDate.getHours()}:${currentDate.getMinutes()}:${currentDate.getSeconds()}] Backup feito com sucesso`);
+        if(foldersLength > 0){
+            const lastModifiedFolder = folders[foldersLength-1]
+    
+            const backupFolderPath = path.join(backupsFolderPath, lastModifiedFolder)
+    
+            const backupFilePath = path.join(backupFolderPath, BARONY_SAVEGAME_FILE)
+            
+            fs.copyFileSync(backupFilePath, saveFilePath);
+    
+            const currentDate = new Date();
+        
+            console.log(`[${currentDate.getHours()}:${currentDate.getMinutes()}:${currentDate.getSeconds()}] Restore feito com sucesso`);
+        }
+    }
 }
